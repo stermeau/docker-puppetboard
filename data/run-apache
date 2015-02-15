@@ -1,0 +1,5 @@
+#!/bin/bash
+
+/usr/local/bin/update-settings.py
+
+/usr/sbin/apache2 -D FOREGROUND
