@@ -1,0 +1,33 @@
+[Unit]
+Description=PuppetBoard
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=0
+ExecStartPre=-/usr/bin/docker kill puppetboard
+ExecStartPre=-/usr/bin/docker rm puppetboard
+#ExecStartPre=/usr/bin/docker pull kassis/puppetboard
+ExecStart=/usr/bin/docker run --name puppetboard \
+  -v /var/lib/puppet/ssl:/srv/puppetboard/ssl \
+  -v /path/to/puppet/share:/srv/puppet \
+  -e PUPPETDB_HOST=puppetdb.example.com \
+  -e PUPPETDB_PORT=8081 \
+  -e PUPPETDB_SSL_VERIFY=/srv/puppetboard/ssl/certs/ca.pem \
+  -e PUPPETDB_KEY=/srv/puppetboard/ssl/private_keys/dockerhost.example.com.pem \
+  -e PUPPETDB_CERT=/srv/puppetboard/ssl/certs/dockerhost.example.com.pem \
+  -e LDAP_ENABLE=True \
+  -e LDAP_HOST='ldap.example.com:389' \
+  -e LDAP_BASE=DC=example,DC=com \
+  -e LDAP_USER=username \
+  -e LDAP_PASS=password \
+  -e LDAP_GROUP=CN=puppetboard,OU=Group,DC=example,DC=com \
+  -e PUPPETFILE_PATH=/path/to/Puppetfile \
+  -e GERRIT_HOST=gerrit.example.com \
+  -e GERRIT_PROJECT_NAME=puppet_repo_name \
+  -e INVENTORY_DIR=/path/to/inventory \
+  -p 80:80 kassis/puppetboard:dev
+ExecStop=/usr/bin/docker kill puppetboard
+
+[Install]
+WantedBy=multi-user.target

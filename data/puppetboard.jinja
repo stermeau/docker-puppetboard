@@ -1,0 +1,62 @@
+<Virtualhost *:80>
+        WSGIDaemonProcess puppetboard user=www-data group=www-data threads=5
+        WSGIScriptAlias / {{ webdoc_dir }}/wsgi.py
+
+        <Directory "{{ webdoc_dir }}/">
+                Order allow,deny
+                Allow from all
+        </Directory>
+
+        Alias /static {{ puppetboard_py_dir }}/static/
+
+        {%- if inventory_dir %}
+        Alias /files/reports  {{ inventory_dir }}
+        {%- endif %}
+
+        <Directory "{{ puppetboard_py_dir }}/static/">
+                WSGIProcessGroup puppetboard
+                WSGIApplicationGroup %{GLOBAL}
+
+                Order deny,allow
+                Allow from all
+        </Directory>
+
+        {%- if ldap_enable %}
+
+        <Location "/">
+                # Basic authentication with LDAP against MS AD
+                AuthType Basic
+                AuthBasicProvider ldap
+
+                AuthLDAPURL "ldap://{{ ldap_host }}/{{ ldap_base }}?sAMAccountName?sub?(objectClass=*)"
+
+                # The LDAP bind username and password
+                AuthLDAPBindDN "{{ ldap_auth_user }}"
+                AuthLDAPBindPassword "{{ ldap_auth_pass }}"
+
+                # Authentication only through LDAP, no fallback
+                AuthzLDAPAuthoritative on
+                AuthUserFile /dev/null
+
+                # Realm
+                AuthName "Puppetboard"
+
+                {% if ldap_user_enable -%}
+                Require ldap-user {{ ldap_user }}
+                {%- endif %}
+
+                {%- if ldap_group_enable -%}
+                Require ldap-group {{ ldap_group }}
+                {%- endif %}
+        </Location>
+        {% endif %}
+
+        ErrorLog ${APACHE_LOG_DIR}/puppetboard.error.log
+
+        # Possible values include: debug, info, notice, warn, error, crit,
+        # alert, emerg.
+        LogLevel warn
+
+        CustomLog ${APACHE_LOG_DIR}/puppetboard.access.log combined
+</VirtualHost>
+

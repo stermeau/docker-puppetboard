@@ -1,5 +1,8 @@
 #!/bin/bash
 
 /usr/local/bin/update-settings.py
+/usr/local/bin/update-vhost.py
+
+a2ensite puppetboard
 
 /usr/sbin/apache2 -D FOREGROUND
