@@ -2,9 +2,6 @@ FROM debian:wheezy
 
 MAINTAINER Julien K. <docker@kassisol.com>
 
-ADD data/proxy.sh /etc/profile.d/proxy.sh
-RUN /etc/profile.d/proxy.sh
-
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections \
 	&& set -x \
 	&& apt-get update \
